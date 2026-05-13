@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>ДЕМО CRM: Брони + Журнал | Оптимизированная версия</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f5; margin: 0; padding: 12px; }
+        .demo-banner { background: #ff9800; color: #2d2d2d; text-align: center; padding: 10px; font-weight: bold; border-radius: 40px; margin-bottom: 16px; font-size: 0.85rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .main-dashboard { max-width: 1600px; margin: 0 auto; background: white; border-radius: 28px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.6rem; margin: 0 0 4px; color: #1a2c3e; }
+        .sub { color: #4a627a; border-left: 4px solid #ff9800; padding-left: 12px; margin-bottom: 24px; font-size: 0.9rem; }
+        .button-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid #dce5ec; padding-bottom: 16px; }
+        .btn { background: #f0f4f8; border: none; padding: 10px 18px; border-radius: 60px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; min-height: 44px; }
+        .btn-primary { background: #2c7da0; color: white; }
+        .btn-primary:hover { background: #1f5e7a; }
+        .btn-outline { border: 1px solid #bdd3e4; background: white; }
+        .btn-outline:hover { background: #eef3fc; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .danger-btn { background: #fee2e2; color: #b91c1c; }
+        .btn-sm { padding: 6px 12px; font-size: 0.75rem; min-height: 32px; }
+        .btn-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(0.1); }
+        .card { background: #fefefe; border-radius: 20px; border: 1px solid #e2edf2; padding: 20px; margin-bottom: 24px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
+        .modal-card { background: white; width: 100%; max-width: 700px; border-radius: 28px; padding: 24px; max-height: 90vh; overflow-y: auto; }
+        .full-modal-card { max-width: 1200px; }
+        input, select { width: 100%; padding: 12px 14px; border-radius: 16px; border: 1px solid #cbdde6; font-size: 1rem; margin-bottom: 8px; }
+        label { font-weight: 600; display: block; margin-bottom: 6px; font-size: 0.9rem; }
+        .flex-btns { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; justify-content: flex-end; }
+        .booking-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 4px solid; transition: 0.1s; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+        .booking-card.confirmed { background: #d4edda; border-left-color: #28a745; }
+        .booking-card.preliminary { background: #fff3cd; border-left-color: #ffc107; }
+        .booking-info { flex: 1; }
+        .booking-actions { display: flex; gap: 8px; }
+        .slot-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; max-height: 300px; overflow-y: auto; }
+        .slot-btn { background: #e8f0fe; border: 1px solid #cbdde6; border-radius: 40px; padding: 10px 16px; cursor: pointer; font-size: 0.85rem; transition: 0.1s; }
+        .slot-btn:hover { background: #cfe7f0; transform: scale(1.02); }
+        .slot-btn.selected { background: #2c7da0; color: white; border-color: #2c7da0; }
+        .profile-card { background: #f8fafc; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #2c7da0; cursor: pointer; transition: 0.1s; }
+        .profile-card:hover { background: #eef3fc; transform: translateX(2px); }
+        .info-row { display: flex; margin: 10px 0; padding: 6px 0; border-bottom: 1px solid #e2edf2; }
+        .info-label { width: 110px; font-weight: 600; color: #4a627a; }
+        .info-value { flex: 1; }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
+        .filter-row > div { flex: 1 1 160px; }
+        .close-btn { margin-top: 20px; width: 100%; }
+        .pagination { display: flex; justify-content: center; gap: 12px; margin-top: 20px; align-items: center; }
+        .day-view { margin-top: 16px; }
+        .day-slot { display: flex; border-bottom: 1px solid #e2edf2; padding: 8px 0; align-items: center; flex-wrap: wrap; }
+        .slot-time { width: 80px; font-weight: bold; }
+        .slot-info { flex: 1; cursor: pointer; padding: 8px; border-radius: 12px; transition: 0.1s; margin: 2px 0; }
+        .slot-info.available { background: #e8f0fe; color: #1f5e7a; }
+        .slot-info.available:hover { background: #cfe7f0; }
+        .slot-info.booked-confirmed { background: #d4edda; border-left: 4px solid #28a745; }
+        .slot-info.booked-preliminary { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .time-select-group { display: flex; gap: 12px; align-items: center; }
+        .time-select-group select { width: auto; flex: 1; margin-bottom: 0; }
+        .demo-note { font-size: 0.75rem; color: #ff9800; margin-top: 16px; text-align: center; border-top: 1px dashed #ffd89a; padding-top: 12px; }
+        @media (max-width: 680px) { .btn { padding: 8px 14px; } .info-label { width: 90px; } .modal-card { padding: 16px; } .slot-time { width: 70px; } .booking-card { flex-direction: column; align-items: flex-start; } .booking-actions { align-self: flex-end; } .time-select-group { flex-direction: column; align-items: stretch; } .time-select-group select { width: 100%; } }
+    </style>
+</head>
+<body>
+<div class="demo-banner">
+    🧪 ДЕМО-РЕЖИМ: все изменения работают, но НЕ СОХРАНЯЮТСЯ после перезагрузки страницы
+</div>
+<div class="main-dashboard">
+    <h1>📋 Сервис-менеджер (Демо)</h1>
+    <div class="sub">Бронирование · Журнал · Пагинация · Индексы · Полный функционал</div>
+    <div class="button-bar">
+        <button class="btn btn-primary" id="openWorkersBtn">👥 Исполнители</button>
+        <button class="btn btn-primary" id="openPriceBtn">💰 Прайс</button>
+        <button class="btn btn-primary" id="openClientsBtn">🧑 Клиенты</button>
+        <button class="btn btn-primary" id="openFullBookingBtn">📅 Расписание</button>
+        <button class="btn btn-primary" id="openJournalModalBtn">📋 Журнал</button>
+        <button class="btn btn-outline btn-disabled" style="opacity:0.5; cursor:not-allowed;">💾 Бэкап (отключен)</button>
+        <button class="btn btn-outline btn-disabled" style="opacity:0.5; cursor:not-allowed;">📂 Восстановить (отключен)</button>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
+            <h3 style="margin:0">📅 Активные брони на сегодня <span id="todayDate" style="color:#2c7da0"></span></h3>
+            <button id="newBookingBtn" class="btn btn-primary">➕ Новая бронь</button>
+        </div>
+        <div id="todayBookingsList"></div>
+    </div>
+
+    <div class="card">
+        <h3>📋 Журнал за сегодня</h3>
+        <div id="todayJournalList" style="overflow-x:auto"></div>
+    </div>
+    <div class="demo-note">
+        ⚡ Демонстрационный режим: вы можете добавлять, редактировать, удалять — изменения активны до перезагрузки страницы.
+    </div>
+</div>
+
+<div id="workersModal" class="modal"><div class="modal-card"><div id="workersApp"></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div></div>
+<div id="priceModal" class="modal"><div class="modal-card"><div id="priceApp"></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div></div>
+<div id="clientsModal" class="modal"><div class="modal-card"><div id="clientsApp"></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div></div>
+<div id="fullBookingModal" class="modal"><div class="modal-card"><div id="fullBookingApp"></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div></div>
+<div id="journalModal" class="modal"><div class="modal-card full-modal-card"><div id="journalApp"></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div></div>
+
+<script>
+    // ---------- ДЕМО-РЕЖИМ: ВСЕ ИЗМЕНЕНИЯ НЕ СОХРАНЯЮТСЯ ----------
+    let workers = [], services = [], clients = [], journal = [];
+    let bookings = [];
+    let nextWorkerId = 100, nextServiceId = 200, nextClientId = 300, nextJournalId = 1000, nextBookingId = 500;
+    let gapMinutes = 30;
+    
+    // Пустые функции сохранения/загрузки (демо)
+    function saveAll() { console.log("ДЕМО: изменения не сохраняются в localStorage"); }
+    function loadFromLocal() { return false; }
+    
+    let journalFilters = { from: '', to: '', service: '', worker: '', client: '', search: '' };
+    let currentJournalPage = 1;
+    let journalRowsPerPage = 50;
+    let cachedFilteredJournal = null;
+    let cachedFilterKey = '';
+
+    function rebuildIndices() {
+        // в демо-режиме индексы не нужны для сохранения, но для работы используем
+    }
+
+    function resetToDemoData() {
+        workers = [
+            { id: 1, lastName: 'Иванов', firstName: 'Петр', middleName: 'Сергеевич', specialty: 'Мастер по ремонту', phone: '+79991112233', workHours: { пн: ['09:00', '18:00'], вт: ['09:00', '18:00'], ср: ['09:00', '18:00'], чт: ['09:00', '18:00'], пт: ['09:00', '18:00'], сб: [], вс: [] } },
+            { id: 2, lastName: 'Петрова', firstName: 'Анна', middleName: 'Викторовна', specialty: 'Косметолог', phone: '+79882223344', workHours: { пн: ['10:00', '18:00'], вт: ['10:00', '18:00'], ср: ['10:00', '18:00'], чт: ['10:00', '18:00'], пт: ['10:00', '18:00'], сб: [], вс: [] } }
+        ];
+        services = [
+            { id: 1, name: 'Замена экрана', price: 3500, durationMinutes: 60 },
+            { id: 2, name: 'Чистка ноутбука', price: 1200, durationMinutes: 30 },
+            { id: 3, name: 'Установка ПО', price: 800, durationMinutes: 45 }
+        ];
+        clients = [
+            { id: 1, lastName: 'Сидоров', firstName: 'Алексей', middleName: 'Дмитриевич', phone: '+79161112233', discountPercent: 10 },
+            { id: 2, lastName: 'Кузнецова', firstName: 'Елена', middleName: '', phone: '+79031234567', discountPercent: 0 }
+        ];
+        journal = [{ id: 100, date: new Date().toISOString().slice(0, 10), clientId: 1, serviceId: 1, workerId: 1, finalPrice: 3150 }];
+        bookings = [];
+        nextWorkerId = 3; nextServiceId = 4; nextClientId = 3; nextJournalId = 101; nextBookingId = 501;
+        cachedFilteredJournal = null;
+    }
+
+    function getWorkerShort(w) { return w ? `${w.lastName} ${w.firstName.charAt(0)}.${w.middleName ? w.middleName.charAt(0) + '.' : ''}` : '??'; }
+    function getClientShort(c) { return c ? `${c.lastName} ${c.firstName.charAt(0)}.${c.middleName ? c.middleName.charAt(0) + '.' : ''}` : '—'; }
+    function getWorkerById(id) { return workers.find(w => w.id === id); }
+    function getClientById(id) { return clients.find(c => c.id === id); }
+    function getServiceById(id) { return services.find(s => s.id === id); }
+    function calculateFinalPrice(price, disc) { return Math.round(price * (1 - disc / 100)); }
+    function timeToMinutes(t) { let [h, m] = t.split(':'); return parseInt(h) * 60 + parseInt(m); }
+    function timeToTimeStr(min) { let h = Math.floor(min / 60), m = min % 60; return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`; }
+    function formatDuration(minutes) { let h = Math.floor(minutes / 60), m = minutes % 60; return h > 0 ? (m > 0 ? `${h}ч ${m}м` : `${h}ч`) : `${m}м`; }
+
+    function hasBookingConflict(workerId, date, startMin, endMin, excludeId = null) {
+        return bookings.some(b => {
+            if (excludeId !== null && b.id === excludeId) return false;
+            if (b.workerId !== workerId || b.date !== date || b.status === 'Отменена') return false;
+            const bStart = timeToMinutes(b.startTime);
+            const bEnd = timeToMinutes(b.endTime);
+            return startMin < bEnd && endMin > bStart;
+        });
+    }
+
+    function getAvailableSlots(worker, date, serviceDuration, gap = gapMinutes) {
+        let dowMap = { 0: 'вс', 1: 'пн', 2: 'вт', 3: 'ср', 4: 'чт', 5: 'пт', 6: 'сб' };
+        let dow = dowMap[new Date(date).getDay()];
+        let hours = worker.workHours?.[dow] || [];
+        if (!hours.length) return [];
+        let start = hours[0].split(':').map(Number), end = hours[1].split(':').map(Number);
+        let workStart = start[0] * 60 + start[1], workEnd = end[0] * 60 + end[1];
+        let slots = [];
+        let current = workStart;
+        while (current + serviceDuration <= workEnd) {
+            if (!hasBookingConflict(worker.id, date, current, current + serviceDuration)) {
+                slots.push({ start: timeToTimeStr(current), end: timeToTimeStr(current + serviceDuration) });
+            }
+            current += (serviceDuration + gap);
+        }
+        return slots;
+    }
+
+    function completeBooking(bookingId) {
+        let booking = bookings.find(b => b.id === bookingId);
+        if (!booking) return;
+        journal.push({ id: nextJournalId++, date: booking.date, clientId: booking.clientId, serviceId: booking.serviceId, workerId: booking.workerId, finalPrice: booking.finalPrice });
+        bookings = bookings.filter(b => b.id !== bookingId);
+        cachedFilteredJournal = null;
+        renderTodayBookings();
+        renderTodayJournal();
+        if (document.getElementById('journalFullBody')) renderJournalFullModal(document.getElementById('journalApp'));
+        alert('Бронь выполнена и перенесена в журнал');
+    }
+
+    function showAddJournalForm() {
+        let modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        modal.innerHTML = `<div class="modal-card"><h3>📝 Добавить запись в журнал</h3>
+            <div><label>📅 Дата</label><input type="date" id="journalDate" value="${new Date().toISOString().slice(0, 10)}"></div>
+            <div><label>🧑 Клиент</label><select id="journalClient">${clients.map(c => `<option value="${c.id}">${getClientShort(c)} (скидка ${c.discountPercent}%)</option>`).join('')}</select><button id="quickClientBtn" class="btn btn-outline btn-sm" style="margin-top:4px">➕ Новый клиент</button></div>
+            <div><label>🛠 Услуга</label><select id="journalService">${services.map(s => `<option value="${s.id}">${s.name} — ${s.price}₽ (${formatDuration(s.durationMinutes)})</option>`).join('')}</select></div>
+            <div><label>👤 Исполнитель</label><select id="journalWorker">${workers.map(w => `<option value="${w.id}">${getWorkerShort(w)}</option>`).join('')}</select></div>
+            <div class="flex-btns"><button id="saveJournalBtn" class="btn btn-primary">✅ Сохранить</button><button id="cancelJournalBtn" class="btn btn-outline">❌ Отмена</button></div></div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('#quickClientBtn').onclick = () => { showClientForm(null, () => { modal.remove(); showAddJournalForm(); refreshAll(); }); };
+        modal.querySelector('#saveJournalBtn').onclick = () => {
+            let date = modal.querySelector('#journalDate').value, clientId = parseInt(modal.querySelector('#journalClient').value), serviceId = parseInt(modal.querySelector('#journalService').value), workerId = parseInt(modal.querySelector('#journalWorker').value);
+            if (!date || isNaN(clientId) || isNaN(serviceId) || isNaN(workerId)) { alert('Заполните все поля'); return; }
+            let service = getServiceById(serviceId), client = getClientById(clientId);
+            if (!service || !client) return;
+            journal.push({ id: nextJournalId++, date, clientId, serviceId, workerId, finalPrice: calculateFinalPrice(service.price, client.discountPercent) });
+            cachedFilteredJournal = null;
+            modal.remove();
+            renderTodayJournal();
+            if (document.getElementById('journalFullBody')) renderJournalFullModal(document.getElementById('journalApp'));
+            alert('Запись добавлена в журнал');
+        };
+        modal.querySelector('#cancelJournalBtn').onclick = () => modal.remove();
+    }
+
+    function renderTodayBookings() {
+        let today = new Date().toISOString().slice(0, 10);
+        document.getElementById('todayDate').innerHTML = today;
+        let todayBookings = bookings.filter(b => b.date === today && b.status !== 'Отменена').sort((a, b) => a.startTime.localeCompare(b.startTime));
+        let html = '';
+        if (todayBookings.length === 0) {
+            html = '<div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 16px;">📭 На сегодня нет активных броней</div>';
+        } else {
+            todayBookings.forEach(b => {
+                let w = getWorkerById(b.workerId), s = getServiceById(b.serviceId), c = getClientById(b.clientId);
+                let statusClass = b.status === 'Подтверждена' ? 'confirmed' : 'preliminary';
+                html += `<div class="booking-card ${statusClass}"><div class="booking-info"><strong>🕐 ${b.startTime} - ${b.endTime}</strong><br><span>👤 ${w ? getWorkerShort(w) : '-'}</span><br><span>🛠 ${s ? s.name : '-'} (${formatDuration(s?.durationMinutes || 0)})</span><br><span>🧑 ${c ? getClientShort(c) : '-'}</span><br><span>📌 ${b.status}</span></div><div class="booking-actions"><button class="btn btn-success btn-sm complete-booking" data-id="${b.id}">✅ Выполнена</button><button class="btn btn-outline btn-sm edit-booking" data-id="${b.id}">✏️</button><button class="btn danger-btn btn-sm delete-booking" data-id="${b.id}">🗑️</button></div></div>`;
+            });
+        }
+        document.getElementById('todayBookingsList').innerHTML = html;
+        document.querySelectorAll('.complete-booking').forEach(btn => btn.addEventListener('click', () => completeBooking(parseInt(btn.dataset.id))));
+        document.querySelectorAll('.edit-booking').forEach(btn => btn.addEventListener('click', () => editBooking(parseInt(btn.dataset.id))));
+        document.querySelectorAll('.delete-booking').forEach(btn => btn.addEventListener('click', () => { if (confirm('Отменить бронь?')) { bookings = bookings.filter(b => b.id != btn.dataset.id); renderTodayBookings(); renderTodayJournal(); } }));
+    }
+
+    function renderTodayJournal() {
+        let today = new Date().toISOString().slice(0, 10);
+        let entries = journal.filter(e => e.date === today);
+        let html = `<table style="width:100%; border-collapse: collapse;"><thead><tr><th style="padding:10px">Дата</th><th>Исполнитель</th><th>Услуга</th><th>Стоимость</th><th>Клиент</th></tr></thead><tbody>`;
+        entries.forEach(e => {
+            let w = getWorkerById(e.workerId), s = getServiceById(e.serviceId), c = getClientById(e.clientId);
+            html += `<tr><td style="padding:10px">${e.date}</td><td style="padding:10px">${w ? getWorkerShort(w) : '-'}</td><td style="padding:10px">${s ? s.name : '-'} (${formatDuration(s?.durationMinutes || 0)})</span></td><td style="padding:10px">${e.finalPrice}₽</span></td><td style="padding:10px">${c ? getClientShort(c) : '-'}</span><tr>`;
+        });
+        html += `</tbody></table>`;
+        document.getElementById('todayJournalList').innerHTML = entries.length ? html : '<div style="padding:20px; text-align:center">📭 За сегодня записей нет</div>';
+    }
+
+    function refreshAll() { renderTodayBookings(); renderTodayJournal(); }
+
+    let selectedSlot = null;
+    function showBookingForm(prefill = {}) {
+        let modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        modal.innerHTML = `<div class="modal-card"><h3>${prefill.id ? '✏️ Редактирование брони' : '📅 Новая бронь'}</h3>
+            <div><label>📅 Дата</label><input type="date" id="bookDate" value="${prefill.date || ''}"></div>
+            <div><label>🧑 Клиент</label><select id="bookClient">${clients.map(c => `<option value="${c.id}" ${prefill.clientId === c.id ? 'selected' : ''}>${getClientShort(c)} (скидка ${c.discountPercent}%)</option>`).join('')}</select><button id="quickClientBtn" class="btn btn-outline btn-sm" style="margin-top:4px">➕ Новый клиент</button></div>
+            <div><label>🛠 Услуга</label><select id="bookService">${services.map(s => `<option value="${s.id}" ${prefill.serviceId === s.id ? 'selected' : ''}>${s.name} — ${s.price}₽ (${formatDuration(s.durationMinutes)})</option>`).join('')}</select></div>
+            <div><label>👤 Исполнитель</label><select id="bookWorker">${workers.map(w => `<option value="${w.id}" ${prefill.workerId === w.id ? 'selected' : ''}>${getWorkerShort(w)}</option>`).join('')}</select></div>
+            <div><label>🕐 Доступные слоты</label><div id="slotsContainer" class="slot-grid"></div></div>
+            <div><label>📌 Статус</label><select id="bookStatus"><option ${prefill.status === 'Подтверждена' ? 'selected' : ''}>Подтверждена</option><option ${prefill.status === 'Предварительная' ? 'selected' : ''}>Предварительная</option></select></div>
+            <div><label>⏱ Интервал после услуги (мин)</label><input type="number" id="bookingGap" value="${gapMinutes}" step="5"></div>
+            <div class="flex-btns"><button id="saveBookingBtn" class="btn btn-primary">✅ Сохранить</button><button id="cancelBookingBtn" class="btn btn-outline">❌ Отмена</button></div></div>`;
+        document.body.appendChild(modal);
+        function renderSlots() {
+            let date = modal.querySelector('#bookDate').value, workerId = parseInt(modal.querySelector('#bookWorker').value), serviceId = parseInt(modal.querySelector('#bookService').value), currentGap = parseInt(modal.querySelector('#bookingGap').value) || 30;
+            let worker = getWorkerById(workerId), service = getServiceById(serviceId);
+            let container = modal.querySelector('#slotsContainer');
+            if (!date || !worker || !service) { container.innerHTML = '<div style="padding:20px; text-align:center">⚠️ Выберите дату, услугу и мастера</div>'; return; }
+            let slots = getAvailableSlots(worker, date, service.durationMinutes, currentGap);
+            if (slots.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center">❌ Нет свободных слотов на эту дату</div>'; return; }
+            container.innerHTML = slots.map(s => `<button type="button" class="slot-btn" data-start="${s.start}">${s.start} — ${s.end}</button>`).join('');
+            if (prefill.startTime) { let btn = container.querySelector(`.slot-btn[data-start="${prefill.startTime}"]`); if (btn) btn.classList.add('selected'); }
+            container.querySelectorAll('.slot-btn').forEach(btn => btn.addEventListener('click', () => { container.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); selectedSlot = btn.dataset.start; }));
+        }
+        modal.querySelector('#bookDate').value = prefill.date || new Date().toISOString().slice(0, 10);
+        modal.querySelector('#bookWorker').value = prefill.workerId || workers[0]?.id || '';
+        modal.querySelector('#bookService').value = prefill.serviceId || services[0]?.id || '';
+        modal.querySelector('#bookingGap').addEventListener('change', renderSlots);
+        modal.querySelector('#bookDate').addEventListener('change', renderSlots);
+        modal.querySelector('#bookWorker').addEventListener('change', renderSlots);
+        modal.querySelector('#bookService').addEventListener('change', renderSlots);
+        renderSlots();
+        modal.querySelector('#quickClientBtn').onclick = () => { showClientForm(null, () => { modal.remove(); showBookingForm(prefill); refreshAll(); }); };
+        modal.querySelector('#saveBookingBtn').onclick = () => {
+            let date = modal.querySelector('#bookDate').value, slot = selectedSlot || (modal.querySelector('#slotsContainer .slot-btn.selected')?.dataset.start);
+            let clientId = parseInt(modal.querySelector('#bookClient').value), serviceId = parseInt(modal.querySelector('#bookService').value), workerId = parseInt(modal.querySelector('#bookWorker').value);
+            let status = modal.querySelector('#bookStatus').value, newGap = parseInt(modal.querySelector('#bookingGap').value) || 30;
+            if (!date || !slot || isNaN(clientId) || isNaN(serviceId) || isNaN(workerId)) { alert('Заполните все поля и выберите слот'); return; }
+            let service = getServiceById(serviceId), client = getClientById(clientId);
+            if (!service || !client) return;
+            gapMinutes = newGap;
+            let finalPrice = calculateFinalPrice(service.price, client.discountPercent);
+            let startTime = slot, endTime = timeToTimeStr(timeToMinutes(startTime) + service.durationMinutes);
+            if (prefill.id) {
+                let idx = bookings.findIndex(b => b.id === prefill.id);
+                if (idx !== -1) bookings[idx] = { ...bookings[idx], date, startTime, endTime, clientId, serviceId, workerId, status, finalPrice };
+                else alert('Ошибка: бронь не найдена');
+            } else {
+                bookings.push({ id: nextBookingId++, date, startTime, endTime, clientId, serviceId, workerId, status, finalPrice });
+            }
+            modal.remove(); refreshAll(); alert(prefill.id ? 'Бронь обновлена' : 'Бронь создана');
+        };
+        modal.querySelector('#cancelBookingBtn').onclick = () => modal.remove();
+    }
+    function editBooking(id) { let b = bookings.find(b => b.id === id); if (b) showBookingForm({ id: b.id, date: b.date, clientId: b.clientId, serviceId: b.serviceId, workerId: b.workerId, startTime: b.startTime, status: b.status }); else alert('Бронь не найдена'); }
+
+    let currentDayDate = new Date();
+    function renderDayScheduleModal(container) {
+        function render() {
+            let dateStr = currentDayDate.toISOString().slice(0, 10);
+            let daySchedule = [];
+            workers.forEach(worker => {
+                let dowMap = { 0: 'вс', 1: 'пн', 2: 'вт', 3: 'ср', 4: 'чт', 5: 'пт', 6: 'сб' };
+                let dow = dowMap[new Date(dateStr).getDay()];
+                let hours = worker.workHours?.[dow] || [];
+                if (!hours.length) return;
+                let start = timeToMinutes(hours[0]), end = timeToMinutes(hours[1]);
+                for (let t = start; t < end; t += 30) {
+                    let time = timeToTimeStr(t);
+                    let booking = bookings.find(b => b.workerId === worker.id && b.date === dateStr && b.status !== 'Отменена' && timeToMinutes(b.startTime) === t);
+                    daySchedule.push({ time, workerId: worker.id, workerName: getWorkerShort(worker), booking });
+                }
+            });
+            daySchedule.sort((a, b) => a.time.localeCompare(b.time));
+            let times = [...new Set(daySchedule.map(s => s.time))];
+            let html = `<div class="calendar-nav"><button id="dayPrevBtn" class="btn btn-outline">◀ Пред</button><span style="font-weight:bold; font-size:1.2rem">${dateStr} (${currentDayDate.toLocaleDateString('ru-RU', { weekday: 'long' })})</span><button id="dayNextBtn" class="btn btn-outline">След ▶</button><button id="dayTodayBtn" class="btn btn-outline">Сегодня</button><button id="dayNewBookingBtn" class="btn btn-primary">➕ Новая бронь</button></div><div class="day-view">`;
+            times.forEach(time => {
+                let slotsAtTime = daySchedule.filter(s => s.time === time);
+                html += `<div class="day-slot"><div class="slot-time"><strong>${time}</strong></div><div style="flex:1">`;
+                slotsAtTime.forEach(slot => {
+                    if (!slot.booking) {
+                        html += `<div class="slot-info available" data-date="${dateStr}" data-time="${time}" data-worker="${slot.workerId}">➕ ${slot.workerName} — свободно</div>`;
+                    } else {
+                        let statusClass = slot.booking.status === 'Подтверждена' ? 'booked-confirmed' : 'booked-preliminary';
+                        let srv = getServiceById(slot.booking.serviceId);
+                        let cl = getClientById(slot.booking.clientId);
+                        html += `<div class="slot-info ${statusClass}" data-booking-id="${slot.booking.id}">${slot.workerName} — ${srv?.name || 'услуга'} (${cl ? getClientShort(cl) : 'клиент'}) — ${slot.booking.status}<button class="btn btn-success btn-sm complete-booking-slot" data-id="${slot.booking.id}" style="margin-left:8px">✅ Выполнена</button></div>`;
+                    }
+                });
+                html += `</div></div>`;
+            });
+            if (times.length === 0) html += `<div style="padding:20px; text-align:center">📭 Нет рабочих часов на эту дату</div>`;
+            html += `</div>`;
+            container.innerHTML = html;
+            document.getElementById('dayPrevBtn')?.addEventListener('click', () => { currentDayDate.setDate(currentDayDate.getDate() - 1); renderDayScheduleModal(container); });
+            document.getElementById('dayNextBtn')?.addEventListener('click', () => { currentDayDate.setDate(currentDayDate.getDate() + 1); renderDayScheduleModal(container); });
+            document.getElementById('dayTodayBtn')?.addEventListener('click', () => { currentDayDate = new Date(); renderDayScheduleModal(container); });
+            document.getElementById('dayNewBookingBtn')?.addEventListener('click', () => showBookingForm({}));
+            document.querySelectorAll('.slot-info.available').forEach(el => el.addEventListener('click', () => showBookingForm({ date: el.dataset.date, time: el.dataset.time, workerId: parseInt(el.dataset.worker) })));
+            document.querySelectorAll('.complete-booking-slot').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); completeBooking(parseInt(btn.dataset.id)); renderDayScheduleModal(container); }));
+        }
+        render();
+    }
+
+    function getFilteredJournal() {
+        const key = JSON.stringify(journalFilters);
+        if (cachedFilteredJournal !== null && cachedFilterKey === key) return cachedFilteredJournal;
+        let filtered = [...journal];
+        if (journalFilters.from) filtered = filtered.filter(e => e.date >= journalFilters.from);
+        if (journalFilters.to) filtered = filtered.filter(e => e.date <= journalFilters.to);
+        if (journalFilters.service) filtered = filtered.filter(e => e.serviceId == journalFilters.service);
+        if (journalFilters.worker) filtered = filtered.filter(e => e.workerId == journalFilters.worker);
+        if (journalFilters.client) filtered = filtered.filter(e => e.clientId == journalFilters.client);
+        if (journalFilters.search) filtered = filtered.filter(e => { let w = getWorkerById(e.workerId), s = getServiceById(e.serviceId), c = getClientById(e.clientId); return `${e.date} ${w ? getWorkerShort(w) : ''} ${s ? s.name : ''} ${c ? getClientShort(c) : ''}`.toLowerCase().includes(journalFilters.search.toLowerCase()); });
+        cachedFilteredJournal = filtered;
+        cachedFilterKey = key;
+        return filtered;
+    }
+
+    function renderJournalFullModal(container) {
+        function renderTable() {
+            const filtered = getFilteredJournal();
+            const totalPages = Math.ceil(filtered.length / journalRowsPerPage);
+            if (currentJournalPage > totalPages) currentJournalPage = Math.max(1, totalPages);
+            const start = (currentJournalPage - 1) * journalRowsPerPage;
+            const pageEntries = filtered.slice(start, start + journalRowsPerPage);
+            let rows = '';
+            pageEntries.forEach(e => {
+                let w = getWorkerById(e.workerId), s = getServiceById(e.serviceId), c = getClientById(e.clientId);
+                rows += `<tr><td style="padding:10px">${e.date}</td><td style="padding:10px">${w ? getWorkerShort(w) : '-'}</td><td style="padding:10px">${s ? s.name : '-'} (${s ? formatDuration(s.durationMinutes) : '-'})</span></td><td style="padding:10px">${e.finalPrice}₽</span></td><td style="padding:10px">${c ? getClientShort(c) : '-'}</span></td><td style="padding:10px"><button class="btn btn-outline btn-sm edit-journal" data-id="${e.id}">✏️</button> <button class="btn danger-btn btn-sm delete-journal" data-id="${e.id}">🗑️</button></td></tr>`;
+            });
+            document.getElementById('journalFullBody').innerHTML = rows || '<tr><td colspan="6" style="text-align:center; padding:20px">Нет записей</span></tr>';
+            document.getElementById('journalPageInfo').innerHTML = `Страница ${currentJournalPage} из ${totalPages || 1} (всего ${filtered.length} записей)`;
+            document.getElementById('journalPrevPage').disabled = currentJournalPage <= 1;
+            document.getElementById('journalNextPage').disabled = currentJournalPage >= totalPages;
+            document.querySelectorAll('.edit-journal').forEach(btn => btn.addEventListener('click', () => editJournalEntry(journal.find(j => j.id == btn.dataset.id), renderTable)));
+            document.querySelectorAll('.delete-journal').forEach(btn => btn.addEventListener('click', () => { if (confirm('Удалить запись?')) { journal = journal.filter(j => j.id != btn.dataset.id); cachedFilteredJournal = null; renderTable(); renderTodayJournal(); refreshAll(); } }));
+        }
+        function editJournalEntry(entry, cb) {
+            let modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+            modal.innerHTML = `<div class="modal-card"><h3>✏️ Редактировать запись журнала</h3><div><label>Дата</label><input type="date" id="editDate" value="${entry.date}"></div><div><label>Клиент</label><select id="editClient">${clients.map(c => `<option value="${c.id}" ${c.id === entry.clientId ? 'selected' : ''}>${getClientShort(c)}</option>`).join('')}</select></div><div><label>Услуга</label><select id="editService">${services.map(s => `<option value="${s.id}" ${s.id === entry.serviceId ? 'selected' : ''}>${s.name}</option>`).join('')}</select></div><div><label>Исполнитель</label><select id="editWorker">${workers.map(w => `<option value="${w.id}" ${w.id === entry.workerId ? 'selected' : ''}>${getWorkerShort(w)}</option>`).join('')}</select></div><div class="flex-btns"><button id="saveEdit" class="btn btn-primary">Сохранить</button><button id="cancelEdit" class="btn btn-outline">Отмена</button></div></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#saveEdit').onclick = () => {
+                let newDate = modal.querySelector('#editDate').value, newClientId = parseInt(modal.querySelector('#editClient').value), newServiceId = parseInt(modal.querySelector('#editService').value), newWorkerId = parseInt(modal.querySelector('#editWorker').value);
+                let client = getClientById(newClientId), service = getServiceById(newServiceId);
+                if (!newDate || !client || !service) { alert('Ошибка'); return; }
+                entry.date = newDate; entry.clientId = newClientId; entry.serviceId = newServiceId; entry.workerId = newWorkerId;
+                entry.finalPrice = calculateFinalPrice(service.price, client.discountPercent);
+                cachedFilteredJournal = null; modal.remove(); if (cb) cb(); renderTodayJournal(); refreshAll();
+            };
+            modal.querySelector('#cancelEdit').onclick = () => modal.remove();
+        }
+        let html = `<h3>📋 Журнал записей <button id="addJournalDirectBtn" class="btn btn-primary" style="margin-left:16px">📝 Добавить в журнал</button></h3>
+            <div class="filter-row"><div><label>Дата от</label><input type="date" id="filterFrom"></div><div><label>Дата до</label><input type="date" id="filterTo"></div><div><label>Услуга</label><select id="filterService"><option value="">Все</option>${services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select></div><div><label>Исполнитель</label><select id="filterWorker"><option value="">Все</option>${workers.map(w => `<option value="${w.id}">${getWorkerShort(w)}</option>`).join('')}</select></div><div><label>Клиент</label><select id="filterClient"><option value="">Все</option>${clients.map(c => `<option value="${c.id}">${getClientShort(c)}</option>`).join('')}</select></div><div><label>🔍 Поиск</label><input type="text" id="journalSearch" placeholder="Текст"></div><div><button class="btn btn-primary" id="applyJournalFilters">Применить</button></div></div>
+            <div class="overflow-auto"><table style="width:100%; border-collapse: collapse;"><thead><tr><th style="padding:10px">Дата</th><th>Исполнитель</th><th>Услуга</th><th>Цена</th><th>Клиент</th><th>Действия</th></tr></thead><tbody id="journalFullBody"></tbody></table></div>
+            <div class="pagination"><button id="journalPrevPage" class="btn btn-outline btn-sm">◀ Предыдущая</button><span id="journalPageInfo" style="margin:0 16px">Страница 1</span><button id="journalNextPage" class="btn btn-outline btn-sm">Следующая ▶</button></div>`;
+        container.innerHTML = html;
+        document.getElementById('addJournalDirectBtn').onclick = () => showAddJournalForm();
+        document.getElementById('applyJournalFilters').onclick = () => { journalFilters = { from: document.getElementById('filterFrom').value, to: document.getElementById('filterTo').value, service: document.getElementById('filterService').value, worker: document.getElementById('filterWorker').value, client: document.getElementById('filterClient').value, search: document.getElementById('journalSearch').value }; cachedFilteredJournal = null; currentJournalPage = 1; renderTable(); };
+        document.getElementById('journalPrevPage')?.addEventListener('click', () => { if (currentJournalPage > 1) { currentJournalPage--; renderTable(); } });
+        document.getElementById('journalNextPage')?.addEventListener('click', () => { const total = Math.ceil(getFilteredJournal().length / journalRowsPerPage); if (currentJournalPage < total) { currentJournalPage++; renderTable(); } });
+        renderTable();
+    }
+
+    // Карточки (сокращённые версии)
+    function renderWorkersModal(container) { let filter = '';
+        function render() {
+            let filtered = workers.filter(w => `${w.lastName} ${w.firstName}`.toLowerCase().includes(filter));
+            let html = `<h3>👥 Исполнители</h3><input type="text" id="workerSearch" placeholder="🔍 Поиск..." style="margin-bottom:16px; padding:12px;"><button class="btn btn-primary" id="addWorkerBtn" style="margin-bottom:16px">+ Добавить</button>`;
+            filtered.forEach(w => { html += `<div class="profile-card" data-id="${w.id}"><strong>${w.lastName} ${w.firstName} ${w.middleName || ''}</strong><br><span style="color:#4a627a">📞 ${w.phone}</span><br><span style="color:#4a627a">🔧 ${w.specialty}</span></div>`; });
+            container.innerHTML = html;
+            document.getElementById('workerSearch')?.addEventListener('input', e => { filter = e.target.value.toLowerCase(); render(); });
+            document.getElementById('addWorkerBtn')?.addEventListener('click', () => showWorkerForm(null, () => renderWorkersModal(container)));
+            document.querySelectorAll('.profile-card').forEach(card => card.addEventListener('click', () => { let w = workers.find(w => w.id == card.dataset.id); if (w) showWorkerDetails(w, () => renderWorkersModal(container)); }));
+        }
+        render();
+    }
+    function showWorkerDetails(worker, onRefresh) {
+        let modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        modal.innerHTML = `<div class="modal-card"><h3>👤 Карточка исполнителя</h3><div class="info-row"><div class="info-label">ФИО</div><div class="info-value"><strong>${worker.lastName} ${worker.firstName} ${worker.middleName || ''}</strong></div></div><div class="info-row"><div class="info-label">Специальность</div><div class="info-value">${worker.specialty}</div></div><div class="info-row"><div class="info-label">Телефон</div><div class="info-value">${worker.phone}</div></div><div class="flex-btns"><button id="editWorkerBtn" class="btn btn-outline">✏️ Редактировать</button><button id="editHoursBtn" class="btn btn-outline">🕘 График</button><button id="delWorkerBtn" class="btn danger-btn">🗑️ Удалить</button></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div>`;
+        document.body.appendChild(modal);
+        let close = () => modal.remove();
+        modal.querySelector('.close-modal-btn').onclick = close;
+        modal.querySelector('#editWorkerBtn').onclick = () => { close(); showWorkerForm(worker, onRefresh); };
+        modal.querySelector('#editHoursBtn').onclick = () => { close(); showWorkHoursEditor(worker, () => { if (onRefresh) onRefresh(); refreshAll(); }); };
+        modal.querySelector('#delWorkerBtn').onclick = () => { if (confirm('Удалить?')) { workers = workers.filter(w => w.id !== worker.id); close(); if (onRefresh) onRefresh(); refreshAll(); } };
+    }
+    function showWorkerForm(worker, cb) {
+        let isEdit = !!worker, modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        modal.innerHTML = `<div class="modal-card"><h3>${isEdit ? '✏️ Редактировать' : '➕ Новый исполнитель'}</h3><div><label>Фамилия *</label><input id="ln" value="${worker ? worker.lastName : ''}"></div><div><label>Имя *</label><input id="fn" value="${worker ? worker.firstName : ''}"></div><div><label>Отчество *</label><input id="mn" value="${worker ? worker.middleName : ''}"></div><div><label>Специальность *</label><input id="spec" value="${worker ? worker.specialty : ''}"></div><div><label>Телефон *</label><input id="ph" value="${worker ? worker.phone : ''}"></div><div class="flex-btns"><button id="saveBtn" class="btn btn-primary">Сохранить</button><button id="cancelBtn" class="btn btn-outline">Отмена</button></div></div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('#saveBtn').onclick = () => {
+            let ln = modal.querySelector('#ln').value.trim(), fn = modal.querySelector('#fn').value.trim(), mn = modal.querySelector('#mn').value.trim(), spec = modal.querySelector('#spec').value.trim(), ph = modal.querySelector('#ph').value.trim();
+            if (!ln || !fn || !mn || !spec || !ph) { alert('Все поля обязательны'); return; }
+            if (isEdit) { worker.lastName = ln; worker.firstName = fn; worker.middleName = mn; worker.specialty = spec; worker.phone = ph; }
+            else workers.push({ id: nextWorkerId++, lastName: ln, firstName: fn, middleName: mn, specialty: spec, phone: ph, workHours: { пн: ['09:00', '18:00'], вт: ['09:00', '18:00'], ср: ['09:00', '18:00'], чт: ['09:00', '18:00'], пт: ['09:00', '18:00'], сб: [], вс: [] } });
+            modal.remove(); if (cb) cb(); refreshAll();
+        };
+        modal.querySelector('#cancelBtn').onclick = () => modal.remove();
+    }
+    function showWorkHoursEditor(worker, onSave) {
+        let days = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+        let modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        let hours = worker.workHours || {};
+        let html = `<h3>🕘 График работы: ${worker.lastName} ${worker.firstName}</h3>`;
+        days.forEach(day => { let val = hours[day] || []; html += `<div style="display:flex; gap:10px; margin-bottom:12px; align-items:center"><strong style="width:40px">${day}</strong> <input type="time" id="start_${day}" value="${val[0] || ''}" style="width:110px"> — <input type="time" id="end_${day}" value="${val[1] || ''}" style="width:110px"> <button class="btn btn-sm clear-day" data-day="${day}">✖️</button></div>`; });
+        html += `<div class="flex-btns"><button id="saveHoursBtn" class="btn btn-primary">Сохранить</button><button id="cancelHoursBtn" class="btn btn-outline">Отмена</button></div><button class="btn btn-outline close-modal-btn close-btn" style="margin-top:16px">❌ Закрыть</button>`;
+        modal.innerHTML = `<div class="modal-card">${html}</div>`;
+        document.body.appendChild(modal);
+        modal.querySelectorAll('.clear-day').forEach(btn => btn.addEventListener('click', () => { let d = btn.dataset.day; modal.querySelector(`#start_${d}`).value = ''; modal.querySelector(`#end_${d}`).value = ''; }));
+        modal.querySelector('#saveHoursBtn').onclick = () => {
+            let newHours = {};
+            days.forEach(day => { let start = modal.querySelector(`#start_${day}`).value, end = modal.querySelector(`#end_${day}`).value; if (start && end) newHours[day] = [start, end]; else newHours[day] = []; });
+            worker.workHours = newHours; modal.remove(); if (onSave) onSave(); refreshAll();
+        };
+        modal.querySelector('#cancelHoursBtn').onclick = () => modal.remove();
+        modal.querySelector('.close-modal-btn').onclick = () => modal.remove();
+    }
+    function renderPriceModal(container) { let filter = '';
+        function render() {
+            let filtered = services.filter(s => s.name.toLowerCase().includes(filter));
+            let html = `<h3>💰 Прайс-лист</h3><input type="text" id="priceSearch" placeholder="🔍 Поиск..." style="margin-bottom:16px; padding:12px;"><button class="btn btn-primary" id="addPriceBtn" style="margin-bottom:16px">+ Добавить</button>`;
+            filtered.forEach(s => { html += `<div class="profile-card"><strong>${s.name}</strong><br><span style="color:#4a627a">💰 ${s.price} ₽</span><br><span style="color:#4a627a">⏱ ${formatDuration(s.durationMinutes)}</span><div style="margin-top:10px"><button class="btn btn-outline btn-sm edit-service" data-id="${s.id}">✏️</button> <button class="btn danger-btn btn-sm delete-service" data-id="${s.id}">🗑️</button></div></div>`; });
+            container.innerHTML = html;
+            document.getElementById('priceSearch')?.addEventListener('input', e => { filter = e.target.value.toLowerCase(); render(); });
+            document.getElementById('addPriceBtn')?.addEventListener('click', () => showServiceForm(null, () => renderPriceModal(container)));
+            document.querySelectorAll('.edit-service').forEach(btn => btn.addEventListener('click', () => showServiceForm(services.find(s => s.id == btn.dataset.id), () => renderPriceModal(container))));
+            document.querySelectorAll('.delete-service').forEach(btn => btn.addEventListener('click', () => { if (confirm('Удалить?')) { services = services.filter(s => s.id != btn.dataset.id); renderPriceModal(container); refreshAll(); } }));
+        }
+        function showServiceForm(service, cb) {
+            let isEdit = !!service, modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+            let hours = service ? Math.floor(service.durationMinutes / 60) : 1, minutes = service ? service.durationMinutes % 60 : 0;
+            let hourOpts = '', minOpts = '';
+            for (let i = 0; i <= 12; i++) hourOpts += `<option value="${i}" ${i === hours ? 'selected' : ''}>${i} ч</option>`;
+            for (let i = 0; i < 60; i += 15) minOpts += `<option value="${i}" ${i === minutes ? 'selected' : ''}>${i} мин</option>`;
+            modal.innerHTML = `<div class="modal-card"><h3>${isEdit ? '✏️ Редактировать' : '➕ Новая услуга'}</h3><div><label>Название</label><input id="name" value="${service ? service.name : ''}"></div><div><label>Цена (₽)</label><input id="price" type="number" value="${service ? service.price : ''}"></div><div><label>Длительность</label><div class="time-select-group"><select id="durationHours">${hourOpts}</select><select id="durationMinutes">${minOpts}</select></div></div><div class="flex-btns"><button id="saveBtn" class="btn btn-primary">Сохранить</button><button id="cancelBtn" class="btn btn-outline">Отмена</button></div></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#saveBtn').onclick = () => {
+                let name = modal.querySelector('#name').value.trim(), price = parseFloat(modal.querySelector('#price').value);
+                let total = (parseInt(modal.querySelector('#durationHours').value) || 0) * 60 + (parseInt(modal.querySelector('#durationMinutes').value) || 0);
+                if (!name || isNaN(price) || total <= 0) { alert('Заполните все поля'); return; }
+                if (isEdit) { service.name = name; service.price = price; service.durationMinutes = total; }
+                else services.push({ id: nextServiceId++, name, price, durationMinutes: total });
+                modal.remove(); if (cb) cb(); refreshAll();
+            };
+            modal.querySelector('#cancelBtn').onclick = () => modal.remove();
+        }
+        render();
+    }
+    function renderClientsModal(container) { let filter = '';
+        function render() {
+            let filtered = clients.filter(c => `${c.lastName} ${c.firstName}`.toLowerCase().includes(filter));
+            let html = `<h3>🧑 Клиенты</h3><input type="text" id="clientSearch" placeholder="🔍 Поиск..." style="margin-bottom:16px; padding:12px;"><button class="btn btn-primary" id="addClientBtn" style="margin-bottom:16px">+ Новый</button>`;
+            filtered.forEach(c => { html += `<div class="profile-card" data-id="${c.id}"><strong>${c.lastName} ${c.firstName} ${c.middleName || ''}</strong><br><span style="color:#4a627a">📞 ${c.phone}</span><br><span style="color:#4a627a">💰 Скидка: ${c.discountPercent}%</span></div>`; });
+            container.innerHTML = html;
+            document.getElementById('clientSearch')?.addEventListener('input', e => { filter = e.target.value.toLowerCase(); render(); });
+            document.getElementById('addClientBtn')?.addEventListener('click', () => showClientForm(null, () => renderClientsModal(container)));
+            document.querySelectorAll('.profile-card').forEach(card => card.addEventListener('click', () => { let c = clients.find(c => c.id == card.dataset.id); if (c) showClientDetails(c, () => renderClientsModal(container)); }));
+        }
+        render();
+    }
+    function showClientDetails(client, onRefresh) {
+        let modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        modal.innerHTML = `<div class="modal-card"><h3>📇 Карточка клиента</h3><div class="info-row"><div class="info-label">ФИО</div><div class="info-value"><strong>${client.lastName} ${client.firstName} ${client.middleName || ''}</strong></div></div><div class="info-row"><div class="info-label">Телефон</div><div class="info-value">${client.phone}</div></div><div class="info-row"><div class="info-label">Скидка</div><div class="info-value">${client.discountPercent}%</div></div><div class="flex-btns"><button id="editClientBtn" class="btn btn-outline">✏️ Редактировать</button><button id="delClientBtn" class="btn danger-btn">🗑️ Удалить</button></div><button class="btn btn-outline close-modal-btn close-btn">❌ Закрыть</button></div>`;
+        document.body.appendChild(modal);
+        let close = () => modal.remove();
+        modal.querySelector('.close-modal-btn').onclick = close;
+        modal.querySelector('#editClientBtn').onclick = () => { close(); showClientForm(client, onRefresh); };
+        modal.querySelector('#delClientBtn').onclick = () => { if (confirm('Удалить клиента?')) { clients = clients.filter(c => c.id !== client.id); close(); if (onRefresh) onRefresh(); refreshAll(); } };
+    }
+    function showClientForm(client, cb) {
+        let isEdit = !!client, modal = document.createElement('div'); modal.className = 'modal'; modal.style.display = 'flex';
+        modal.innerHTML = `<div class="modal-card"><h3>${isEdit ? '✏️ Редактировать' : '➕ Новый клиент'}</h3><div><label>Фамилия</label><input id="ln" value="${client ? client.lastName : ''}"></div><div><label>Имя</label><input id="fn" value="${client ? client.firstName : ''}"></div><div><label>Отчество</label><input id="mn" value="${client ? client.middleName : ''}"></div><div><label>Телефон</label><input id="ph" value="${client ? client.phone : ''}"></div><div><label>Скидка (%)</label><input id="disc" type="number" value="${client ? client.discountPercent : 0}"></div><div class="flex-btns"><button id="saveBtn" class="btn btn-primary">Сохранить</button><button id="cancelBtn" class="btn btn-outline">Отмена</button></div></div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('#saveBtn').onclick = () => {
+            let ln = modal.querySelector('#ln').value.trim() || '—', fn = modal.querySelector('#fn').value.trim() || '—', mn = modal.querySelector('#mn').value.trim(), ph = modal.querySelector('#ph').value.trim() || '—', disc = parseInt(modal.querySelector('#disc').value) || 0;
+            if (isEdit) { client.lastName = ln; client.firstName = fn; client.middleName = mn; client.phone = ph; client.discountPercent = disc; }
+            else clients.push({ id: nextClientId++, lastName: ln, firstName: fn, middleName: mn, phone: ph, discountPercent: disc });
+            modal.remove(); if (cb) cb(); refreshAll();
+        };
+        modal.querySelector('#cancelBtn').onclick = () => modal.remove();
+    }
+
+    function openModal(modalId, renderFunc, containerId) { let modal = document.getElementById(modalId), container = document.getElementById(containerId); renderFunc(container); modal.style.display = 'flex'; modal.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none')); modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; }; }
+    document.getElementById('openWorkersBtn').onclick = () => openModal('workersModal', renderWorkersModal, 'workersApp');
+    document.getElementById('openPriceBtn').onclick = () => openModal('priceModal', renderPriceModal, 'priceApp');
+    document.getElementById('openClientsBtn').onclick = () => openModal('clientsModal', renderClientsModal, 'clientsApp');
+    document.getElementById('openFullBookingBtn').onclick = () => openModal('fullBookingModal', renderDayScheduleModal, 'fullBookingApp');
+    document.getElementById('openJournalModalBtn').onclick = () => openModal('journalModal', renderJournalFullModal, 'journalApp');
+    document.getElementById('newBookingBtn').onclick = () => showBookingForm({});
+
+    resetToDemoData(); refreshAll();
+</script>
+</body>
+</html>
